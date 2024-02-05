@@ -590,11 +590,8 @@ class board{
         let targetSquare = this.boardSetting[targetSquareId];
         targetSquare.Piece = currentPiece;
         currentSquare.Piece = null;
-        console.log('MOOOOOOOOOVE');
-        console.log(this.boardSetting);
         if(currentPiece.Name == 'pawn'){
             if(this.checkForPawnPromotion(currentPiece.Color, targetSquareId)){
-                console.log('Condition achieved');
                 showPawnPromotionDisplay(currentPiece.Color, targetSquareId, currentPiece.Id);
             }
             else{
@@ -608,6 +605,10 @@ class board{
         }
         this.blackKingCheck = false;
         this.whiteKingCheck = false;
+        console.log('Main Board');
+        console.log(gameBoard.BoardSetting);
+        console.log('Virtual Board');
+        console.log(virtualBoard.boardSetting);
 
     }
 
@@ -665,7 +666,6 @@ function createDisplayBoard(boardSetting){
         squareDisplay.addEventListener('drop', dragDrop);
         squareDisplay.addEventListener('click', highlightMovements);
         squareDisplay.addEventListener('click', clickSquare);
-        //squareDisplay.addEventListener('click', removeHighlights);
         if(square.Piece){
             squareDisplay.innerHTML = square.Piece.Icon;
         }
@@ -679,7 +679,7 @@ function createDisplayBoard(boardSetting){
         squareDisplay.firstChild && squareDisplay.firstChild.setAttribute('draggable', true)
         squareDisplay.firstChild && squareDisplay.firstChild.setAttribute('draggable', true)
         squareDisplay.setAttribute('square-id', i);
-        console.log(squareDisplay);
+        //console.log(squareDisplay);
         const row = Math.floor( (63 - i) / 8) + 1;
         if (row % 2 === 0) {
             squareDisplay.classList.add(i % 2 === 0 ? 'white' : 'black')
@@ -788,19 +788,16 @@ function dragDrop(e){
                         gameBoard.movePiece(currentSquareId, targetSquareId);
                         e.target.parentNode.appendChild(draggedElement);
                         e.target.remove();
-                        //console.log(gameBoard.BoardSetting);
                         virtualBoard = cloneBoard(gameBoard);
                     }
                     else{
                         gameBoard.movePiece(currentSquareId, targetSquareId);
-                        //console.log(gameBoard.BoardSetting);
                         e.target.appendChild(draggedElement);
                         virtualBoard = cloneBoard(gameBoard);
-                        console.log('Updated Virtual');
-                        console.log(virtualBoard.BoardSetting);
                     }
                 }
                 else{
+                    virtualBoard = cloneBoard(gameBoard);
                     updateDisplayInformation('King Checked');
                 }
             }
@@ -810,19 +807,16 @@ function dragDrop(e){
                         gameBoard.movePiece(currentSquareId, targetSquareId);
                         e.target.parentNode.appendChild(draggedElement);
                         e.target.remove();
-
-                        //console.log(gameBoard.BoardSetting);
                         virtualBoard = cloneBoard(gameBoard);
                     }
                     else{
                         gameBoard.movePiece(currentSquareId, targetSquareId);
-
-                        //console.log(gameBoard.BoardSetting);
                         e.target.appendChild(draggedElement);
                         virtualBoard = cloneBoard(gameBoard);
                     }
                 }
                 else{
+                    virtualBoard = cloneBoard(gameBoard);
                     updateDisplayInformation('King Checked');
                 }                
             }
@@ -847,21 +841,52 @@ function clickSquare(e){
         }
         if(gameBoard.boardSetting[clickedId].Piece.Color == gameBoard.currentPlayer){
             if(gameBoard.checkIFValidMovement(clickedId, targetSquareId)){
-                if(e.target.firstChild){
-                    gameBoard.movePiece(clickedId, targetSquareId);
-                    e.target.parentNode.appendChild(clickedElement);
-                    e.target.remove();
-                    console.log('Click');
-                    console.log(gameBoard.BoardSetting);
-                    clickedId = -1;
-                    removeHighlights();
+                console.log('Trying virtual move');
+                virtualBoard.movePiece(clickedId, targetSquareId);
+                virtualBoard.scanBoard();
+                if(gameBoard.currentPlayer == 'white'){
+                    if(virtualBoard.WhiteKingCheck != true){
+                        if(e.target.firstChild){
+                            gameBoard.movePiece(clickedId, targetSquareId);
+                            e.target.parentNode.appendChild(clickedElement);
+                            e.target.remove();
+                            clickedId = -1;
+                            removeHighlights();
+                            virtualBoard = cloneBoard(gameBoard);
+                        }
+                        else{
+                            gameBoard.movePiece(clickedId, targetSquareId);
+                            e.target.appendChild(clickedElement);
+                            clickedId = -1;
+                            virtualBoard = cloneBoard(gameBoard);
+                        }
+                    }
+                    else{
+                        virtualBoard = cloneBoard(gameBoard);
+                        updateDisplayInformation('King Checked');
+                    }
                 }
                 else{
-                    gameBoard.movePiece(clickedId, targetSquareId);
-                    console.log('Click');
-                    console.log(gameBoard.BoardSetting);
-                    e.target.appendChild(clickedElement);
-                    clickedId = -1;
+                    if(virtualBoard.BlackKingCheck != true){
+                        if(e.target.firstChild){
+                            gameBoard.movePiece(clickedId, targetSquareId);
+                            e.target.parentNode.appendChild(clickedElement);
+                            e.target.remove();
+                            clickedId = -1;
+                            removeHighlights();
+                            virtualBoard = cloneBoard(gameBoard);
+                        }
+                        else{
+                            gameBoard.movePiece(clickedId, targetSquareId);
+                            e.target.appendChild(clickedElement);
+                            clickedId = -1;
+                            virtualBoard = cloneBoard(gameBoard);
+                        }
+                    }
+                    else{
+                        virtualBoard = cloneBoard(gameBoard);
+                        updateDisplayInformation('King Checked');
+                    }
                 }
             }
         }        
@@ -903,10 +928,7 @@ gameBoard.initialBoardSetting();
 
 createDisplayBoard(gameBoard.boardSetting);
 changePieceColor();
-console.log(gameBoard.BoardSetting);
 gameBoard.scanBoard();
-console.log(gameBoard.LegalMoves);
-console.log('Virtualizing');
 let virtualBoard = cloneBoard(gameBoard);
 console.log('Virtual Board');
 console.log(virtualBoard);
