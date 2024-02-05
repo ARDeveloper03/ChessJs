@@ -182,7 +182,7 @@ class board{
                         if(targetSquare.Piece != null){
                             if(targetSquare.Piece.Color != 'black'){
                                 moveSet[pieceId].push(targetSquareId);
-                                if(targetSquare.Piece.Name == 'King'){
+                                if(targetSquare.Piece.Name == 'king'){
                                     this.whiteKingCheck = true;
                                 } 
                             }
@@ -195,7 +195,7 @@ class board{
                         if(targetSquare.Piece != null){
                             if(targetSquare.Piece.Color != 'black'){
                                 moveSet[pieceId].push(targetSquareId);
-                                if(targetSquare.Piece.Name == 'King'){
+                                if(targetSquare.Piece.Name == 'king'){
                                     this.whiteKingCheck = true;
                                 }  
                             }
@@ -230,7 +230,7 @@ class board{
                         if(targetSquare.Piece != null){
                             if(targetSquare.Piece.Color != 'white'){
                                 moveSet[pieceId].push(targetSquareId); 
-                                if(targetSquare.Piece.Name == 'King'){
+                                if(targetSquare.Piece.Name == 'king'){
                                     this.blackKingCheck = true;
                                 } 
                             }
@@ -242,7 +242,7 @@ class board{
                         if(targetSquare.Piece != null){
                             if(targetSquare.Piece.Color != 'white'){
                                 moveSet[pieceId].push(targetSquareId); 
-                                if(targetSquare.Piece.Name == 'King'){
+                                if(targetSquare.Piece.Name == 'king'){
                                     this.blackKingCheck = true;
                                 } 
                             }
@@ -781,6 +781,7 @@ function dragDrop(e){
         if(gameBoard.checkIFValidMovement(currentSquareId, targetSquareId)){
             console.log('Trying virtual move');
             virtualBoard.movePiece(currentSquareId, targetSquareId);
+            virtualBoard.scanBoard();
             if(gameBoard.currentPlayer == 'white'){
                 if(virtualBoard.WhiteKingCheck != true){
                     if(e.target.firstChild){
@@ -804,7 +805,6 @@ function dragDrop(e){
                 }
             }
             else{
-
                 if(virtualBoard.BlackKingCheck != true){
                     if(e.target.firstChild){
                         gameBoard.movePiece(currentSquareId, targetSquareId);
