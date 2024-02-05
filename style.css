@@ -1,0 +1,113 @@
+*{
+    margin: 0;
+    padding: 0;
+
+}
+body{
+    background-color: rgb(40, 42, 47);
+}
+.wrapper{
+    background-color: rgb(40, 42, 47);
+    color: white;
+    text-align: center;
+}
+
+.game-container{
+    display: flex;
+    justify-content: space-evenly;
+}
+
+/* Board */
+.board-container{
+    width: 500px;
+    height: 500px;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: antiquewhite;
+}
+
+/* Squares */
+.square{
+    width: 62.5px;
+    height: 62.5px;
+    position: relative;
+}
+
+.white{
+    background: antiquewhite;
+}
+.black{
+    background-color: gray;
+}
+
+.highlight{
+    background-color: rgb(218, 218, 81);
+    opacity: 40%;
+}
+/* Pieces */
+.piece-container{
+    position: relative;
+    z-index: 1;
+    transition: 0.5s;
+}
+
+.piece-container:hover{
+    scale: 1.2;
+}
+
+svg{
+    position: relative;
+    z-index: -1;
+}
+
+.white-piece{
+    fill: rgb(196, 196, 196);
+}
+
+.black-piece{
+    fill: black;
+}
+
+/* Side Information */
+.taken-pieces{
+    justify-content: center;
+}
+
+/* Pop up Boxes */
+
+.promotion-box-container{
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    z-index: -1;
+}
+
+.promotion-box-container.open{
+    opacity: 0.9;
+    z-index: 9;
+}
+
+.promotion-box{
+    width: 300px;
+    height: 150px;
+    background-color: rgb(73, 73, 73);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 5px;
+}
+
+.promotion-box svg{
+    width: 70px;
+    height: 70px;
+}
