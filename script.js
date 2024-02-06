@@ -155,7 +155,7 @@ class board{
                     const initialPositionBlack = [8,9,10,11,12,13,14,15];
                     const initialPositionWhite = [48,49,50,51,52,53,54,55];
     
-                    if(initialPositionBlack.includes(squareId) && this.boardSetting[squareId].Piece != null){
+                    if(initialPositionBlack.includes(squareId) && this.boardSetting[squareId].Piece != null && pieceColor == 'black'){
                         for(let i = 1; i < 3; i++){
                             targetSquareId = squareId + (8 * i);
                             targetSquare = this.boardSetting[targetSquareId];
@@ -176,22 +176,21 @@ class board{
                             }
                         }
                     }
-                    if( pieceColor == 'black'){
+                    if(pieceColor == 'black' && remainingColumnsAhead > 0){                    
                         targetSquareId = squareId + 8 + 1;
                         targetSquare = this.boardSetting[targetSquareId];
-                        if(targetSquareId < 64){
-                            if(targetSquare.Piece != null){
-                                if(targetSquare.Piece.Color != 'black'){
-                                    moveSet[pieceId].push(targetSquareId);
-                                    if(targetSquare.Piece.Name == 'king'){
-                                        this.whiteKingCheck = true;
-                                    } 
-                                }
+                        if(targetSquare.Piece != null){
+                            if(targetSquare.Piece.Color != 'black'){
+                                moveSet[pieceId].push(targetSquareId);
+                                if(targetSquare.Piece.Name == 'king'){
+                                    this.whiteKingCheck = true;
+                                } 
                             }
                         }
+                        
                     }
 
-                    if(pieceColor == 'black'){
+                    if(pieceColor == 'black' && remainingColumnsBehind > 0){
                         targetSquareId = squareId + 8 - 1;
                         targetSquare = this.boardSetting[targetSquareId];
                         if(targetSquare.Piece != null){
@@ -204,7 +203,7 @@ class board{
                         }
                     }      
 
-                    if(initialPositionWhite.includes(squareId) && this.boardSetting[squareId].Piece != null){
+                    if(initialPositionWhite.includes(squareId) && this.boardSetting[squareId].Piece != null && pieceColor =='white'){
                         for(let i = 1; i < 3; i++){
                             targetSquareId = squareId - (8 * i);
                             targetSquare = this.boardSetting[targetSquareId];
@@ -226,7 +225,7 @@ class board{
                         }
                     }
 
-                    if(pieceColor == 'white'){
+                    if(pieceColor == 'white' && remainingColumnsAhead > 0){
                         targetSquareId = squareId - 8 + 1;
                         targetSquare = this.boardSetting[targetSquareId];
                         if(targetSquare.Piece != null){
@@ -238,17 +237,15 @@ class board{
                             }
                         }
                     }             
-                    if(pieceColor == 'white'){
+                    if(pieceColor == 'white' && remainingColumnsBehind > 0){
                         targetSquareId = squareId - 8 - 1;
-                        if(targetSquareId > 0){
-                            targetSquare = this.boardSetting[targetSquareId];
-                            if(targetSquare.Piece != null){                            
-                                if(targetSquare.Piece.Color != 'white'){
-                                    moveSet[pieceId].push(targetSquareId); 
-                                    if(targetSquare.Piece.Name == 'king'){
-                                        this.blackKingCheck = true;
-                                    } 
-                                }
+                        targetSquare = this.boardSetting[targetSquareId];
+                        if(targetSquare.Piece != null){                            
+                            if(targetSquare.Piece.Color != 'white'){
+                                moveSet[pieceId].push(targetSquareId); 
+                                if(targetSquare.Piece.Name == 'king'){
+                                    this.blackKingCheck = true;
+                                } 
                             }
                         }
                     }                             
