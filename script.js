@@ -179,12 +179,14 @@ class board{
                     if( pieceColor == 'black'){
                         targetSquareId = squareId + 8 + 1;
                         targetSquare = this.boardSetting[targetSquareId];
-                        if(targetSquare.Piece != null){
-                            if(targetSquare.Piece.Color != 'black'){
-                                moveSet[pieceId].push(targetSquareId);
-                                if(targetSquare.Piece.Name == 'king'){
-                                    this.whiteKingCheck = true;
-                                } 
+                        if(targetSquareId < 64){
+                            if(targetSquare.Piece != null){
+                                if(targetSquare.Piece.Color != 'black'){
+                                    moveSet[pieceId].push(targetSquareId);
+                                    if(targetSquare.Piece.Name == 'king'){
+                                        this.whiteKingCheck = true;
+                                    } 
+                                }
                             }
                         }
                     }
@@ -238,13 +240,15 @@ class board{
                     }             
                     if(pieceColor == 'white'){
                         targetSquareId = squareId - 8 - 1;
-                        targetSquare = this.boardSetting[targetSquareId];
-                        if(targetSquare.Piece != null){
-                            if(targetSquare.Piece.Color != 'white'){
-                                moveSet[pieceId].push(targetSquareId); 
-                                if(targetSquare.Piece.Name == 'king'){
-                                    this.blackKingCheck = true;
-                                } 
+                        if(targetSquareId > 0){
+                            targetSquare = this.boardSetting[targetSquareId];
+                            if(targetSquare.Piece != null){                            
+                                if(targetSquare.Piece.Color != 'white'){
+                                    moveSet[pieceId].push(targetSquareId); 
+                                    if(targetSquare.Piece.Name == 'king'){
+                                        this.blackKingCheck = true;
+                                    } 
+                                }
                             }
                         }
                     }                             
@@ -805,6 +809,7 @@ function dragDrop(e){
             console.log('Trying virtual move');
             virtualBoard.movePiece(currentSquareId, targetSquareId);
             virtualBoard.scanBoard();
+            console.log('Finished virtual move');
             if(gameBoard.currentPlayer == 'white'){
                 if(virtualBoard.WhiteKingCheck != true){
                     if(e.target.firstChild){
@@ -953,10 +958,7 @@ createDisplayBoard(gameBoard.boardSetting);
 changePieceColor();
 gameBoard.scanBoard();
 let virtualBoard = cloneBoard(gameBoard);
-console.log('Virtual Board');
-console.log(virtualBoard);
-console.log('GameBoard');
-console.log(gameBoard);
+
 
 
 
