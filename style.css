@@ -44,7 +44,11 @@ body{
     background-color: rgb(218, 218, 81);
     opacity: 40%;
 }
+
+
 /* Pieces */
+
+
 .piece-container{
     position: relative;
     z-index: 1;

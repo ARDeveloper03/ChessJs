@@ -588,18 +588,19 @@ class board{
         let currentSquare = this.boardSetting[currentSquareId];
         let currentPiece = currentSquare.Piece;
         let targetSquare = this.boardSetting[targetSquareId];
-        targetSquare.Piece = currentPiece;
         currentSquare.Piece = null;
         if(currentPiece.Name == 'pawn'){
             if(this.checkForPawnPromotion(currentPiece.Color, targetSquareId)){
-                showPawnPromotionDisplay(currentPiece.Color, targetSquareId, currentPiece.Id);
+                showPawnPromotionDisplay(currentPiece.Color,currentSquare.Id ,targetSquareId, currentPiece.Id);
             }
             else{
+                targetSquare.Piece = currentPiece;
                 this.scanBoard();
                 this.changePlayer();
             }
         }
         else{
+            targetSquare.Piece = currentPiece;
             this.scanBoard();
             this.changePlayer();
         }
@@ -623,11 +624,18 @@ class board{
         }
         return false;
     }
-    promotePawn(squareId, target, name){
-        this.BoardSetting[squareId].Piece.Icon = target;
-        this.boardSetting[squareId].Piece.Name = name;
+    promotePawn(squareId, target, name, id, color){
+        console.log(squareId, name, id, color);
+        let newPiece = new piece();
+        newPiece.Icon = target;
+        newPiece.Name = name;
+        newPiece.Id = Number(id);
+        newPiece.Color = color;
+        this.BoardSetting[squareId].Piece = null;
+        this.BoardSetting[squareId].Piece = newPiece;
         this.scanBoard();
         this.changePlayer();
+
     }
     checkIFValidMovement(currentSquareId, targetSquareId){
         let currentPiece = this.boardSetting[currentSquareId].Piece;
@@ -720,32 +728,47 @@ function highlightMovements(e){
         highlightedSquare.classList.add('highlight');
     });
 }
-function showPawnPromotionDisplay(color, squareId, pieceId){
+function showPawnPromotionDisplay(color, currentSquareId, targetSquareId, pieceId){
     let promotionBoxContainer = document.querySelector('.promotion-box-container');
     let promotionBox = document.querySelector('.promotion-box');
     promotionBoxContainer.classList.add('open');
     promotionBoxContainer.style.fill = color;
     for(const child of promotionBox.children){
-        child.setAttribute('square-id', squareId);
+        child.setAttribute('square-id', targetSquareId);
         child.setAttribute('piece-id', pieceId);
+        child.setAttribute('color', color);
+        child.setAttribute('current-square-id', currentSquareId);
     }
     console.log(promotionBox);
 }
 function closePawnPromotionDisplay(id){
+    let promotionBoxContainer = document.querySelector('.promotion-box-container');
+    promotionBoxContainer.classList.remove('open');
 
-    let element = document.querySelector(`[id="${id}"]`);
-    let target = element;
+    let target = document.querySelector(`[id="${id}"]`);
+    let currentSquareId = target.getAttribute('current-square-id')
     let targetSquareId = target.getAttribute('square-id');
     let pieceId = target.getAttribute('piece-id');
     let pieceName = target.getAttribute('id');
+    let pieceColor = target.getAttribute('color');
     let targetSquare = document.querySelector(`[square-id="${targetSquareId}"]`);
+    //let currentSquare = document.querySelector(`[square-id="${currentSquareId}"]`)
+    //currentSquare.firstChild.remove();
     target.removeAttribute('square-id');
     target.removeAttribute('piece-id');
     target.removeAttribute('id');
     target.removeAttribute('onclick');
+    if(pieceColor == 'white'){
+        target.classList.add('white-piece');
+    }
+    else{
+        target.classList.add('black-piece');
+    }
     targetSquare.firstChild.remove();
     targetSquare.appendChild(target);
-    gameBoard.promotePawn(Number(targetSquareId), target, pieceName);
+    gameBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
+    virtualBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
+    //virtualBoard = cloneBoard(gameBoard);
 }
 function updateDisplayInformation(text){
     let textBox = document.querySelector('.text-box');
