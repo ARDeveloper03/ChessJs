@@ -745,8 +745,11 @@ function showPawnPromotionDisplay(color, currentSquareId, targetSquareId, pieceI
 function closePawnPromotionDisplay(id){
     let promotionBoxContainer = document.querySelector('.promotion-box-container');
     promotionBoxContainer.classList.remove('open');
+    let element = document.querySelector(`[id="${id}"]`);
+    let target = element.cloneNode(true);
 
-    let target = document.querySelector(`[id="${id}"]`);
+    console.log(element);
+    console.log(target);
     let currentSquareId = target.getAttribute('current-square-id')
     let targetSquareId = target.getAttribute('square-id');
     let pieceId = target.getAttribute('piece-id');
@@ -767,6 +770,7 @@ function closePawnPromotionDisplay(id){
     }
     targetSquare.firstChild.remove();
     targetSquare.appendChild(target);
+
     gameBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
     virtualBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
     //virtualBoard = cloneBoard(gameBoard);
