@@ -68,6 +68,7 @@ class board{
         this.currentPlayer = 'white';
         this.whiteAttackedSquares = new Array(64);
         this.blackAttackedSquares = new Array(64);
+        this.currentPiecePositions = new Object();
     }
 
     get BoardSetting(){
@@ -101,6 +102,10 @@ class board{
         return this.blackAttackedSquares;
     }
 
+    get CurrentPiecePositions(){
+        return this.currentPiecePositions;
+    }
+
     emptyMoves(){
 
         this.legalMoves = [];
@@ -111,16 +116,17 @@ class board{
     }
 
     initialBoardSetting(){
-        //this.boardSetting = [];
         for(let i = 0; i < 16; i++){
             let newSquare = new square(i);
             let newPiece = new piece();
             newPiece.Name = blackSide[i].Name
             newPiece.Icon = blackSide[i].Icon;
-            newPiece.Id = i;
+            let id = i;
+            newPiece.Id = id;
             newPiece.Color = 'black';
             newSquare.piece = newPiece;
             this.boardSetting.push(newSquare);
+            this.currentPiecePositions[id] = i;
         }
         for(let i = 0; i < 32; i++){
             let newSquare = new square(i + 16);
@@ -131,10 +137,12 @@ class board{
             let newPiece = new piece();
             newPiece.Name = whiteSide[i].Name;
             newPiece.Icon = whiteSide[i].Icon;
-            newPiece.Id = i + 16;
+            let id = i + 16
+            newPiece.Id = id;
             newPiece.Color = 'white';
             newSquare.piece = newPiece;
             this.boardSetting.push(newSquare);
+            this.currentPiecePositions[id] = i + 48;
 
         }
     }
@@ -598,8 +606,13 @@ class board{
     movePiece(currentSquareId, targetSquareId){
         let currentSquare = this.boardSetting[currentSquareId];
         let currentPiece = currentSquare.Piece;
+        let currentPieceId = currentPiece.Id;
         let targetSquare = this.boardSetting[targetSquareId];
+        if(targetSquare.Piece != null){
+            this.currentPiecePositions[targetSquare.Piece.Id] = null;
+        }
         currentSquare.Piece = null;
+        this.currentPiecePositions[currentPieceId] = targetSquareId;
         if(currentPiece.Name == 'pawn'){
             if(this.checkForPawnPromotion(currentPiece.Color, targetSquareId)){
                 showPawnPromotionDisplay(currentPiece.Color,currentSquare.Id ,targetSquareId, currentPiece.Id);
@@ -609,10 +622,6 @@ class board{
                 this.scanBoard();
                 this.changePlayer();
                 this.updateAttackedSquares();
-                console.log('Whites');
-                console.log(gameBoard.WhiteAttackedSquares);
-                console.log('Black');
-                console.log(gameBoard.BlackAttackedSquares);
             }
         }
         else{
@@ -620,18 +629,9 @@ class board{
             this.scanBoard();
             this.changePlayer();
             this.updateAttackedSquares();
-            console.log('Whites');
-            console.log(gameBoard.WhiteAttackedSquares);
-            console.log('Black');
-            console.log(gameBoard.BlackAttackedSquares);
         }
         this.blackKingCheck = false;
         this.whiteKingCheck = false;
-        console.log('Main Board');
-        console.log(gameBoard.BoardSetting);
-        console.log('Virtual Board');
-        console.log(virtualBoard.boardSetting);
-
     }
 
     checkForPawnPromotion(pieceColor,targetSquareId){
@@ -656,8 +656,7 @@ class board{
         this.BoardSetting[squareId].Piece = newPiece;
         this.scanBoard();
         this.changePlayer();
-        this.updateAttackedSquares();
-
+        this.updateAttackedSquares();   
     }
     checkIFValidMovement(currentSquareId, targetSquareId){
         let currentPiece = this.boardSetting[currentSquareId].Piece;
@@ -859,10 +858,8 @@ function dragDrop(e){
     }
     if(gameBoard.boardSetting[currentSquareId].Piece.Color == gameBoard.currentPlayer){
         if(gameBoard.checkIFValidMovement(currentSquareId, targetSquareId)){
-            console.log('Trying virtual move');
             virtualBoard.movePiece(currentSquareId, targetSquareId);
             virtualBoard.scanBoard();
-            console.log('Finished virtual move');
             if(gameBoard.currentPlayer == 'white'){
                 if(virtualBoard.WhiteKingCheck != true){
                     if(e.target.firstChild){
@@ -1011,8 +1008,8 @@ createDisplayBoard(gameBoard.boardSetting);
 changePieceColor();
 gameBoard.scanBoard();
 gameBoard.updateAttackedSquares();
-console.log('Moves');
-console.log(gameBoard.LegalMoves);
+console.log('Positions');
+console.log(gameBoard.CurrentPiecePositions);
 let virtualBoard = cloneBoard(gameBoard);
 
 
