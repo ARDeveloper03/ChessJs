@@ -66,6 +66,8 @@ class board{
         this.boardSetting = [];
         this.legalMoves;
         this.currentPlayer = 'white';
+        this.whiteAttackedSquares = new Array(64);
+        this.blackAttackedSquares = new Array(64);
     }
 
     get BoardSetting(){
@@ -89,6 +91,14 @@ class board{
     }
     get BlackKingCheck(){
         return this.blackKingCheck;
+    }
+
+    get WhiteAttackedSquares(){
+        return this.whiteAttackedSquares;
+    }
+    
+    get BlackAttackedSquares(){
+        return this.blackAttackedSquares;
     }
 
     emptyMoves(){
@@ -598,12 +608,22 @@ class board{
                 targetSquare.Piece = currentPiece;
                 this.scanBoard();
                 this.changePlayer();
+                this.updateAttackedSquares();
+                console.log('Whites');
+                console.log(gameBoard.WhiteAttackedSquares);
+                console.log('Black');
+                console.log(gameBoard.BlackAttackedSquares);
             }
         }
         else{
             targetSquare.Piece = currentPiece;
             this.scanBoard();
             this.changePlayer();
+            this.updateAttackedSquares();
+            console.log('Whites');
+            console.log(gameBoard.WhiteAttackedSquares);
+            console.log('Black');
+            console.log(gameBoard.BlackAttackedSquares);
         }
         this.blackKingCheck = false;
         this.whiteKingCheck = false;
@@ -636,6 +656,7 @@ class board{
         this.BoardSetting[squareId].Piece = newPiece;
         this.scanBoard();
         this.changePlayer();
+        this.updateAttackedSquares();
 
     }
     checkIFValidMovement(currentSquareId, targetSquareId){
@@ -660,6 +681,44 @@ class board{
         else{
             this.currentPlayer = 'white';
             updateDisplayInformation('Current Player: White');
+        }
+    }
+    updateAttackedSquares(){
+        this.blackAttackedSquares = new Array(64);
+        for(let i = 0; i < 8; i++){
+            let currentMoves = this.legalMoves[i];
+            currentMoves.forEach(idSquare => {
+                this.blackAttackedSquares[idSquare] = 1;
+            });
+        }
+        for(let i = 8; i < 16; i++){
+            let currentMove = this.legalMoves[i][0];
+            this.blackAttackedSquares[currentMove + 1] = 1;
+            this.blackAttackedSquares[currentMove - 1] = 1;
+            if(currentMove % 8 == 0){
+                this.blackAttackedSquares[currentMove - 1] = null;
+            }
+            if((currentMove + 1) % 8 == 0){
+                this.blackAttackedSquares[currentMove + 1] = null;
+            }
+        }
+        this.whiteAttackedSquares = new Array(64);
+        for(let i = 16; i < 24; i++){
+            let currentMove = this.legalMoves[i][0];
+            this.whiteAttackedSquares[currentMove + 1] = 1;
+            this.whiteAttackedSquares[currentMove - 1] = 1;
+            if(currentMove % 8 == 0){
+                this.whiteAttackedSquares[currentMove - 1] = null;
+            }
+            if((currentMove + 1) % 8 == 0){
+                this.whiteAttackedSquares[currentMove + 1] = null;
+            }
+        }
+        for(let i = 24; i < 32; i++){
+            let currentMoves = this.legalMoves[i];
+            currentMoves.forEach(idSquare => {
+                this.whiteAttackedSquares[idSquare] = 1;
+            });
         }
     }
 }
@@ -747,17 +806,11 @@ function closePawnPromotionDisplay(id){
     promotionBoxContainer.classList.remove('open');
     let element = document.querySelector(`[id="${id}"]`);
     let target = element.cloneNode(true);
-
-    console.log(element);
-    console.log(target);
-    let currentSquareId = target.getAttribute('current-square-id')
     let targetSquareId = target.getAttribute('square-id');
     let pieceId = target.getAttribute('piece-id');
     let pieceName = target.getAttribute('id');
     let pieceColor = target.getAttribute('color');
     let targetSquare = document.querySelector(`[square-id="${targetSquareId}"]`);
-    //let currentSquare = document.querySelector(`[square-id="${currentSquareId}"]`)
-    //currentSquare.firstChild.remove();
     target.removeAttribute('square-id');
     target.removeAttribute('piece-id');
     target.removeAttribute('id');
@@ -773,7 +826,6 @@ function closePawnPromotionDisplay(id){
 
     gameBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
     virtualBoard.promotePawn(Number(targetSquareId), target, pieceName, pieceId, pieceColor);
-    //virtualBoard = cloneBoard(gameBoard);
 }
 function updateDisplayInformation(text){
     let textBox = document.querySelector('.text-box');
@@ -958,6 +1010,9 @@ gameBoard.initialBoardSetting();
 createDisplayBoard(gameBoard.boardSetting);
 changePieceColor();
 gameBoard.scanBoard();
+gameBoard.updateAttackedSquares();
+console.log('Moves');
+console.log(gameBoard.LegalMoves);
 let virtualBoard = cloneBoard(gameBoard);
 
 
