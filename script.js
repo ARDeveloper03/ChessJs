@@ -1423,52 +1423,34 @@ function clickSquare(e){
         }
         if(gameBoard.boardSetting[clickedId].Piece.Color == gameBoard.currentPlayer){
             if(gameBoard.checkIFValidMovement(clickedId, targetSquareId)){
-                console.log('Trying virtual move');
-                virtualBoard.movePiece(clickedId, targetSquareId);
-                virtualBoard.scanBoard();
-                if(gameBoard.currentPlayer == 'white'){
-                    if(virtualBoard.WhiteKingCheck != true){
-                        if(e.target.firstChild){
-                            gameBoard.movePiece(clickedId, targetSquareId);
-                            e.target.parentNode.appendChild(clickedElement);
-                            e.target.remove();
-                            clickedId = -1;
-                            removeHighlights();
-                            virtualBoard = cloneBoard(gameBoard);
-                        }
-                        else{
-                            gameBoard.movePiece(clickedId, targetSquareId);
-                            e.target.appendChild(clickedElement);
-                            clickedId = -1;
-                            virtualBoard = cloneBoard(gameBoard);
+                if(!gameBoard.checkforCheck(clickedId, targetSquareId)){
+                    if(e.target.firstChild){
+                        gameBoard.movePiece(clickedId, targetSquareId);
+                        e.target.parentNode.appendChild(clickedElement);
+                        e.target.remove();
+                        clickedId = -1;
+                        removeHighlights();                        
+                        gameBoard.cloneBoard();
+                        if(gameBoard.checkOpponent()){
+                            if(gameBoard.checkForCheckMate()){
+                                updateDisplayInformation('Game over');
+                            }
                         }
                     }
                     else{
-                        virtualBoard = cloneBoard(gameBoard);
-                        updateDisplayInformation('King Checked');
+                        gameBoard.movePiece(clickedId, targetSquareId);
+                        e.target.appendChild(clickedElement);
+                        clickedId = -1;                        
+                        gameBoard.cloneBoard();
+                        if(gameBoard.checkOpponent()){
+                            if(gameBoard.checkForCheckMate()){
+                                updateDisplayInformation('Game over');
+                            }
+                        }
                     }
                 }
                 else{
-                    if(virtualBoard.BlackKingCheck != true){
-                        if(e.target.firstChild){
-                            gameBoard.movePiece(clickedId, targetSquareId);
-                            e.target.parentNode.appendChild(clickedElement);
-                            e.target.remove();
-                            clickedId = -1;
-                            removeHighlights();
-                            virtualBoard = cloneBoard(gameBoard);
-                        }
-                        else{
-                            gameBoard.movePiece(clickedId, targetSquareId);
-                            e.target.appendChild(clickedElement);
-                            clickedId = -1;
-                            virtualBoard = cloneBoard(gameBoard);
-                        }
-                    }
-                    else{
-                        virtualBoard = cloneBoard(gameBoard);
-                        updateDisplayInformation('King Checked');
-                    }
+                    updateDisplayInformation('King Checked');
                 }
             }
         }        
