@@ -61,14 +61,15 @@ class square{
 
 class board{
     constructor(){
-        this.blackKingCheck;
-        this.whiteKingCheck;
+        this.blackKingCheck = false;
+        this.whiteKingCheck = false;
         this.boardSetting = [];
         this.legalMoves;
         this.currentPlayer = 'white';
         this.whiteAttackedSquares = new Array(64);
         this.blackAttackedSquares = new Array(64);
         this.currentPiecePositions = new Object();
+        this.virtualBoard;
     }
 
     get BoardSetting(){
@@ -86,12 +87,25 @@ class board{
     get CurrentPlayer(){
         return this.currentPlayer;
     }
+    
+    set CurrentPlayer(currentPlayer){
+        this.currentPlayer = currentPlayer;
+    }
 
     get WhiteKingCheck(){
         return this.whiteKingCheck;
     }
+
+    set WhiteKingCheck(whiteKingCheck){
+        this.whiteKingCheck = whiteKingCheck;
+    }
+
     get BlackKingCheck(){
         return this.blackKingCheck;
+    }
+
+    set BlackKingCheck(blackKingCheck){
+        this.blackKingCheck = blackKingCheck;
     }
 
     get WhiteAttackedSquares(){
@@ -585,7 +599,6 @@ class board{
             if(pieceColor != targetPieceColor){
                 moveSet[pieceId].push(targetSquareId);
                 if(targetSquare.Piece.Name == 'king'){
-                    console.log('THE KING IS CHECKED');
                     if(pieceColor == 'white'){
                         this.blackKingCheck = true;
                     }
@@ -630,8 +643,6 @@ class board{
             this.changePlayer();
             this.updateAttackedSquares();
         }
-        this.blackKingCheck = false;
-        this.whiteKingCheck = false;
     }
 
     checkForPawnPromotion(pieceColor,targetSquareId){
@@ -686,12 +697,14 @@ class board{
         this.blackAttackedSquares = new Array(64);
         for(let i = 0; i < 8; i++){
             let currentMoves = this.legalMoves[i];
+            this.blackAttackedSquares[this.currentPiecePositions[i]] = 3;
             currentMoves.forEach(idSquare => {
                 this.blackAttackedSquares[idSquare] = 1;
             });
         }
         for(let i = 8; i < 16; i++){
             let currentMove = this.legalMoves[i][0];
+            this.blackAttackedSquares[this.currentPiecePositions[i]] = 3;
             this.blackAttackedSquares[currentMove + 1] = 1;
             this.blackAttackedSquares[currentMove - 1] = 1;
             if(currentMove % 8 == 0){
@@ -704,6 +717,7 @@ class board{
         this.whiteAttackedSquares = new Array(64);
         for(let i = 16; i < 24; i++){
             let currentMove = this.legalMoves[i][0];
+            this.whiteAttackedSquares[this.currentPiecePositions[i]] = 3;
             this.whiteAttackedSquares[currentMove + 1] = 1;
             this.whiteAttackedSquares[currentMove - 1] = 1;
             if(currentMove % 8 == 0){
@@ -715,11 +729,516 @@ class board{
         }
         for(let i = 24; i < 32; i++){
             let currentMoves = this.legalMoves[i];
+            this.whiteAttackedSquares[this.currentPiecePositions[i]] = 3;
             currentMoves.forEach(idSquare => {
                 this.whiteAttackedSquares[idSquare] = 1;
             });
         }
     }
+
+    checkforCheck(currentSquareId, targetSquareId){
+        this.virtualBoard.movePiece(currentSquareId, targetSquareId);
+        if(this.virtualBoard.CurrentPlayer == 'black'){
+            if(this.virtualBoard.WhiteKingCheck == true){
+                this.cloneBoard()
+                this.virtualBoard.WhiteKingCheck = false;
+                return true;
+            }
+        }
+        else{
+            if(this.virtualBoard.BlackKingCheck == true){
+                this.cloneBoard()
+                this.virtualBoard.BlackKingCheck = false;
+                return true;
+            }
+        }
+        this.cloneBoard()
+        return false;
+    }
+    
+    checkOpponent(){
+        if(this.currentPlayer == 'black'){
+            return this.blackKingCheck;
+        }
+        else{
+            return this.whiteKingCheck;
+        }
+    }
+
+    checkForCheckMate(){
+        let currentKingPosition = 0;
+        let lineOfSight = [];
+        let i = 1;
+        let sameSidePiece = 0;
+        let checked = true;
+        if(this.currentPlayer == 'white'){
+            currentKingPosition = this.currentPiecePositions[28];
+            let availableMoves = this.legalMoves[28];
+            if(this.blackAttackedSquares[currentKingPosition] != 1){
+                alert('You are safe');
+                checked = false;
+            }
+            console.log(this.availableMoves);
+            availableMoves.forEach(move => {
+                if(this.blackAttackedSquares[move] != 1){
+                    alert('YOU CAN ESCAPE');
+                    checked = false;
+                }
+            });         
+            //Right
+            if(this.blackAttackedSquares[currentKingPosition + i] == 1 || this.blackAttackedSquares[currentKingPosition + i] == 3){
+                while(this.blackAttackedSquares[currentKingPosition + i] == 1){
+                    if(this.boardSetting[currentKingPosition + i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + i].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition + i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }
+                i = 1;
+            }
+            //Left
+            if(this.blackAttackedSquares[currentKingPosition - i] == 1 || this.blackAttackedSquares[currentKingPosition - i] == 3){
+                while(this.blackAttackedSquares[currentKingPosition - i] == 1){
+                    if(this.boardSetting[currentKingPosition - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition - i].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - i);
+                        i++;
+                    }                    
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }   
+                i = 1;                          
+            }
+            //Up
+            if(this.blackAttackedSquares[currentKingPosition - (i * 8)] == 1 || this.blackAttackedSquares[currentKingPosition - (i * 8)] == 3){
+                while(this.blackAttackedSquares[currentKingPosition - (i * 8)] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8)].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8)].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition - (i * 8));
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8));
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8));
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;                
+            }
+            //Down
+            if(this.blackAttackedSquares[currentKingPosition + (i * 8) ] == 1 || this.blackAttackedSquares[currentKingPosition + (i * 8) ] == 3){
+                while(this.blackAttackedSquares[currentKingPosition + (i * 8) ] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8)].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8)].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition + (i * 8));
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8));
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8));
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;                
+            }
+            //UpRight
+            if(this.blackAttackedSquares[currentKingPosition - (i * 8) + i ] == 1 || this.blackAttackedSquares[currentKingPosition - (i * 8) + i ] == 3){
+                while(this.blackAttackedSquares[currentKingPosition - (i * 8) + i ] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8) + i ].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8) + i ].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition - (i * 8) + i );
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8) + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8) + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;  
+            }          
+            //UpLeft
+            if(this.blackAttackedSquares[currentKingPosition - (i * 8) - i] == 1 || this.blackAttackedSquares[currentKingPosition - (i * 8) - i] == 3){
+                while(this.blackAttackedSquares[currentKingPosition - (i * 8) - i] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8) - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8) - i].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition - (i * 8) - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8) - i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8) - i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1; 
+            }               
+            //DownRight    
+            if(this.blackAttackedSquares[currentKingPosition + (i * 8) + i] == 1 || this.blackAttackedSquares[currentKingPosition + (i * 8) + i] == 3){
+                while(this.blackAttackedSquares[currentKingPosition + (i * 8) + i] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8) + i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8) + i].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition + (i * 8) + i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8) + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + (i * 8) + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1; 
+            }          
+            //DownLeft
+            if(this.blackAttackedSquares[currentKingPosition + (i * 8) - i] == 1 || this.blackAttackedSquares[currentKingPosition + (i * 8) - i] == 3){
+                while(this.blackAttackedSquares[currentKingPosition + (i * 8) - i] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8) - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8) - i].Piece.Color == 'black'){
+                            lineOfSight.push(currentKingPosition + (i * 8) - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8) - i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + (i * 8) - i);
+                }
+            }
+            console.log('Sight');             
+            console.log(lineOfSight);
+            console.log('Attacked squares');
+            console.log(this.blackAttackedSquares); 
+            for(let i = 0; i < 16; i++){
+                let id = i + 16;
+                let currentPiecePosition = this.CurrentPiecePositions[id];
+                this.legalMoves[id].forEach(move => {
+                    if(!this.checkforCheck(currentPiecePosition, move)){
+                        checked = false;
+                    }
+                });
+            }           
+        }
+        else{
+            currentKingPosition = this.currentPiecePositions[4];
+            let availableMoves = this.legalMoves[4];
+            if(this.whiteAttackedSquares[currentKingPosition] != 1){
+                alert('You are safe');
+                checked = false;
+            }            
+            availableMoves.forEach(move => {
+                if(this.whiteAttackedSquares[move] != 1){
+                    alert('YOU CAN ESCAPE');
+                    checked = false;
+                }
+            });    
+            //Right
+            if(this.whiteAttackedSquares[currentKingPosition + i] == 1 || this.whiteAttackedSquares[currentKingPosition + i] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition + i] == 1){
+                    if(this.boardSetting[currentKingPosition + i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + i].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition + i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }
+                i = 1;
+            }
+            //Left
+            if(this.whiteAttackedSquares[currentKingPosition - i] == 1 || this.whiteAttackedSquares[currentKingPosition - i] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition - i] == 1){
+                    if(this.boardSetting[currentKingPosition - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition - i].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - i);
+                        i++;
+                    }                    
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }   
+                i = 1;                          
+            }
+            //Up
+            if(this.whiteAttackedSquares[currentKingPosition - (i * 8)] == 1 || this.whiteAttackedSquares[currentKingPosition - (i * 8)] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition - (i * 8)] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8)].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8)].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition - (i * 8));
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8));
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8));
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;                
+            }
+            //Down
+            if(this.whiteAttackedSquares[currentKingPosition + (i * 8) ] == 1 || this.whiteAttackedSquares[currentKingPosition + (i * 8) ] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition + (i * 8) ] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8)].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8)].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition + (i * 8));
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8));
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8));
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;                
+            }
+            //UpRight
+            if(this.whiteAttackedSquares[currentKingPosition - (i * 8) + i ] == 1 || this.whiteAttackedSquares[currentKingPosition - (i * 8) + i ] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition - (i * 8) + i ] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8) + i ].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8) + i ].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition - (i * 8) + i );
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8) + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8) + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1;  
+            }          
+            //UpLeft
+            if(this.whiteAttackedSquares[currentKingPosition - (i * 8) - i] == 1 || this.whiteAttackedSquares[currentKingPosition - (i * 8) - i] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition - (i * 8) - i] == 1){
+                    if(this.boardSetting[currentKingPosition - (i * 8) - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition - (i * 8) - i].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition - (i * 8) - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition - (i * 8) - i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition - (i * 8) - i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1; 
+            }               
+            //DownRight    
+            if(this.whiteAttackedSquares[currentKingPosition + (i * 8) + i] == 1 || this.whiteAttackedSquares[currentKingPosition + (i * 8) + i] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition + (i * 8) + i] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8) + i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8) + i].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition + (i * 8) + i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8) + i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + (i * 8) + i);
+                }
+                else{
+                    sameSidePiece = 0;
+                }  
+                i = 1; 
+            }          
+            //DownLeft
+            if(this.whiteAttackedSquares[currentKingPosition + (i * 8) - i] == 1 || this.whiteAttackedSquares[currentKingPosition + (i * 8) - i] == 3){
+                while(this.whiteAttackedSquares[currentKingPosition + (i * 8) - i] == 1){
+                    if(this.boardSetting[currentKingPosition + (i * 8) - i].Piece != null){
+                        if(this.boardSetting[currentKingPosition + (i * 8) - i].Piece.Color == 'white'){
+                            lineOfSight.push(currentKingPosition + (i * 8) - i);
+                            i++;
+                        }
+                        else{
+                            sameSidePiece = 1;
+                            break;
+                        }
+                    }
+                    else{
+                        lineOfSight.push(currentKingPosition + (i * 8) - i);
+                        i++;
+                    }
+                }
+                if(sameSidePiece == 0){
+                    lineOfSight.push(currentKingPosition + (i * 8) - i);
+                }
+            }                    
+        }
+        return checked;
+
+    }
+    cloneBoard(){
+        this.virtualBoard = new board();
+        this.boardSetting.forEach(realsquare => {
+            let id = realsquare.Id;
+            let piece = realsquare.Piece;
+            let virtualSquare = new square(id);
+            virtualSquare.Piece = piece;
+            this.virtualBoard.pushSquare(virtualSquare);
+    
+        });
+        this.virtualBoard.BlackKingCheck = this.blackKingCheck;
+        this.virtualBoard.WhiteKingCheck = this.whiteKingCheck;
+        this.virtualBoard.LegalMoves = this.legalMoves;
+        this.virtualBoard.CurrentPlayer = this.currentPlayer;
+    }    
 }
 
 //Board Display
@@ -845,6 +1364,7 @@ function dragStart(e){
 function dragOver(e){
     e.preventDefault();
 }
+
 function dragDrop(e){
     removeHighlights();
     let targetSquareId;
@@ -858,51 +1378,35 @@ function dragDrop(e){
     }
     if(gameBoard.boardSetting[currentSquareId].Piece.Color == gameBoard.currentPlayer){
         if(gameBoard.checkIFValidMovement(currentSquareId, targetSquareId)){
-            virtualBoard.movePiece(currentSquareId, targetSquareId);
-            virtualBoard.scanBoard();
-            if(gameBoard.currentPlayer == 'white'){
-                if(virtualBoard.WhiteKingCheck != true){
-                    if(e.target.firstChild){
-                        gameBoard.movePiece(currentSquareId, targetSquareId);
-                        e.target.parentNode.appendChild(draggedElement);
-                        e.target.remove();
-                        virtualBoard = cloneBoard(gameBoard);
-                    }
-                    else{
-                        gameBoard.movePiece(currentSquareId, targetSquareId);
-                        e.target.appendChild(draggedElement);
-                        virtualBoard = cloneBoard(gameBoard);
+            if(!gameBoard.checkforCheck(currentSquareId, targetSquareId)){
+                if(e.target.firstChild){
+                    gameBoard.movePiece(currentSquareId, targetSquareId);
+                    e.target.parentNode.appendChild(draggedElement);
+                    e.target.remove();
+                    gameBoard.cloneBoard();
+                    if(gameBoard.checkOpponent()){
+                        if(gameBoard.checkForCheckMate()){
+                            updateDisplayInformation('Game over');
+                        }
                     }
                 }
                 else{
-                    virtualBoard = cloneBoard(gameBoard);
-                    updateDisplayInformation('King Checked');
+                    gameBoard.movePiece(currentSquareId, targetSquareId);
+                    e.target.appendChild(draggedElement);
+                    gameBoard.cloneBoard();
+                    if(gameBoard.checkOpponent()){
+                        if(gameBoard.checkForCheckMate()){
+                            updateDisplayInformation('Game over');
+                        }
+                    }
                 }
             }
             else{
-                if(virtualBoard.BlackKingCheck != true){
-                    if(e.target.firstChild){
-                        gameBoard.movePiece(currentSquareId, targetSquareId);
-                        e.target.parentNode.appendChild(draggedElement);
-                        e.target.remove();
-                        virtualBoard = cloneBoard(gameBoard);
-                    }
-                    else{
-                        gameBoard.movePiece(currentSquareId, targetSquareId);
-                        e.target.appendChild(draggedElement);
-                        virtualBoard = cloneBoard(gameBoard);
-                    }
-                }
-                else{
-                    virtualBoard = cloneBoard(gameBoard);
-                    updateDisplayInformation('King Checked');
-                }                
+                updateDisplayInformation('King Checked');
             }
         }
     }
-
 }
-
 //Click functions
 let clickedId = -1;
 let clickedElement;
@@ -982,23 +1486,10 @@ function clickSquare(e){
 
 //Miscelaneous Functions
 
-function cloneBoard(boardCloned){
-    let clone = new board();
-    boardCloned.BoardSetting.forEach(realsquare => {
-        let id = realsquare.Id;
-        let piece = realsquare.Piece;
-        let virtualSquare = new square(id);
-        virtualSquare.Piece = piece;
-        clone.pushSquare(virtualSquare);
 
-    });
-    clone.BlackKingCheck = boardCloned.BlackKingCheck;
-    clone.WhiteKingCheck = boardCloned.WhiteKingCheck;
-    clone.LegalMoves = boardCloned.LegalMoves;
-    clone.CurrentPlayer = boardCloned.CurrentPlayer;
-    return clone;
+function callCheckmate(){
+    gameBoard.checkForCheckMate();
 }
-
 
 
 let gameBoard = new board();
@@ -1008,9 +1499,10 @@ createDisplayBoard(gameBoard.boardSetting);
 changePieceColor();
 gameBoard.scanBoard();
 gameBoard.updateAttackedSquares();
+gameBoard.cloneBoard();
 console.log('Positions');
 console.log(gameBoard.CurrentPiecePositions);
-let virtualBoard = cloneBoard(gameBoard);
+
 
 
 
