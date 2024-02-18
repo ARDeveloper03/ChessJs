@@ -1275,6 +1275,10 @@ function createDisplayBoard(boardSetting){
         boardDisplay.appendChild(squareDisplay);     
     });
 }
+function destroyDisplayBoard(){
+    let boardDisplay = document.querySelector('.board-container');
+    boardDisplay.innerHTML = '';
+}
 
 function changePieceColor(){
     let allSquares = document.querySelectorAll('.square');
@@ -1351,6 +1355,17 @@ function updateDisplayInformation(text){
 
 }
 
+function showGameOver(winner){
+    let gameOverContainer = document.querySelector('.game-over-container');
+    let gameOverText = document.getElementById('game-over-text');
+    gameOverContainer.classList.add('open');
+    gameOverText.innerHTML = winner + ' Wins';
+}
+function closeGameOver(){
+    let gameOverContainer = document.querySelector('.game-over-container');
+    gameOverContainer.classList.remove('open');
+}
+
 //Drag functions
 let currentSquareId;
 let draggedElement;
@@ -1368,7 +1383,7 @@ function dragOver(e){
 function dragDrop(e){
     removeHighlights();
     let targetSquareId;
-    console.log(e.target);
+    let winner = gameBoard.currentPlayer.charAt(0).toUpperCase() + gameBoard.currentPlayer.slice(1);
 
     if(e.target.firstChild){
         targetSquareId = Number(e.target.parentNode.getAttribute('square-id'));
@@ -1387,6 +1402,7 @@ function dragDrop(e){
                     if(gameBoard.checkOpponent()){
                         if(gameBoard.checkForCheckMate()){
                             updateDisplayInformation('Game over');
+                            showGameOver(winner);
                         }
                     }
                 }
@@ -1397,6 +1413,7 @@ function dragDrop(e){
                     if(gameBoard.checkOpponent()){
                         if(gameBoard.checkForCheckMate()){
                             updateDisplayInformation('Game over');
+                            showGameOver(winner);
                         }
                     }
                 }
@@ -1411,6 +1428,7 @@ function dragDrop(e){
 let clickedId = -1;
 let clickedElement;
 function clickSquare(e){
+    let winner = gameBoard.currentPlayer.charAt(0).toUpperCase() + gameBoard.currentPlayer.slice(1);
     removeHighlights();
     highlightMovements(e);
     if(clickedId != -1){
@@ -1434,6 +1452,7 @@ function clickSquare(e){
                         if(gameBoard.checkOpponent()){
                             if(gameBoard.checkForCheckMate()){
                                 updateDisplayInformation('Game over');
+                                showGameOver(winner);
                             }
                         }
                     }
@@ -1445,6 +1464,7 @@ function clickSquare(e){
                         if(gameBoard.checkOpponent()){
                             if(gameBoard.checkForCheckMate()){
                                 updateDisplayInformation('Game over');
+                                showGameOver(winner);
                             }
                         }
                     }
@@ -1467,21 +1487,26 @@ function clickSquare(e){
 }
 
 //Miscelaneous Functions
-
+function newGame(){
+    updateDisplayInformation('Current Player: White');    
+    closeGameOver();
+    destroyDisplayBoard();
+    gameBoard = new board();
+    gameBoard.initialBoardSetting();
+    createDisplayBoard(gameBoard.boardSetting);
+    changePieceColor();
+    gameBoard.scanBoard();
+    gameBoard.updateAttackedSquares();
+    gameBoard.cloneBoard();    
+}
 
 function callCheckmate(){
-    gameBoard.checkForCheckMate();
+    showGameOver();
 }
 
 
-let gameBoard = new board();
-gameBoard.initialBoardSetting();
-
-createDisplayBoard(gameBoard.boardSetting);
-changePieceColor();
-gameBoard.scanBoard();
-gameBoard.updateAttackedSquares();
-gameBoard.cloneBoard();
+let gameBoard;
+newGame();
 console.log('Positions');
 console.log(gameBoard.CurrentPiecePositions);
 
